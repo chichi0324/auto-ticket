@@ -20,7 +20,8 @@ public class train {
 	private static String Url;
 	private static int number;
 	static {
-		System.setProperty("webdriver.chrome.driver", "/usr/local/bin/chromedriver");// 導入chromedriver
+//		System.setProperty("webdriver.chrome.driver", "driver/chromedriver_win.exe");// 導入chromedriver for window
+		System.setProperty("webdriver.chrome.driver", "driver/chromedriver_mac");// 導入chromedriver for mac
 
 		// ChromeOptions chromeOptions = new ChromeOptions();
 		// chromeOptions.addArguments("--start-maximized");//windows

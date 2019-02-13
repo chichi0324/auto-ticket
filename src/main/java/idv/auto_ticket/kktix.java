@@ -1,7 +1,5 @@
 package idv.auto_ticket;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -21,7 +19,8 @@ public class kktix {
 	private static String areaUrl;
 	private static int number;
 	static {
-		System.setProperty("webdriver.chrome.driver", "/usr/local/bin/chromedriver");// 導入chromedriver
+//		System.setProperty("webdriver.chrome.driver", "driver/chromedriver_win.exe");// 導入chromedriver for window
+		System.setProperty("webdriver.chrome.driver", "driver/chromedriver_mac");// 導入chromedriver for mac
 
 		// ChromeOptions chromeOptions = new ChromeOptions();
 		// chromeOptions.addArguments("--start-maximized");//windows
