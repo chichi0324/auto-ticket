@@ -1,7 +1,5 @@
 package idv.auto_ticket;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,12 +45,12 @@ public class tixcraft {
 		driver.get("https://tixcraft.com/login/facebook");// fb登入
 
 		// *****************登入畫面**********************
-		driver.findElement(By.id("email")).sendKeys("");// 帳號
-		driver.findElement(By.id("pass")).sendKeys("");// 密碼
+		driver.findElement(By.id("email")).sendKeys("***你的帳號***");// 帳號
+		driver.findElement(By.id("pass")).sendKeys("***你的密碼***");// 密碼
 		driver.findElement(By.id("loginbutton")).submit();// 點選"登入"
 		try {// 已是會員的情況，只輸入密碼
 			driver.findElement(By.xpath("//*[@id='u_0_u']/div/div[2]/table/tbody/tr[1]/td/input"))
-					.sendKeys("");// 密碼
+					.sendKeys("***你的密碼***");// 密碼
 			driver.findElement(By.xpath("//*[@id='u_0_3']")).submit();
 			;
 		} catch (Exception e) {
@@ -74,12 +72,13 @@ public class tixcraft {
 			try {
 				driver.get(activePageUrl);// 重新進入演唱會"購票頁面
 				driver.findElements(By.className("btn-next")).get(areaNo).click();// 演唱會場次，點選"立即訂購"
-
-//				getContract();// 若有買賣契約()
+				
+				areaUrl = driver.getCurrentUrl().replace("verify", "area");
+				
+				getContract();// 若有買賣契約(日團) 或 focas粉絲答題(韓團)
 
 				// https://tixcraft.com/ticket/area/18_IU/5149
 				// https://tixcraft.com/ticket/verify/18_IU/5149
-				areaUrl = driver.getCurrentUrl().replace("verify", "area");
 				break;
 			} catch (Exception e) {
 				// System.out.println(e.getMessage());
@@ -88,13 +87,12 @@ public class tixcraft {
 		// ******************選擇座位畫面********************
 
 		do {
-			getFansQuestion(element,jse);
 			// 搶票過程中若被系統踢出來，自動點擊"立即訂購"
 			try {
 				if (activePageUrl.equals(driver.getCurrentUrl())) {
 					driver.findElements(By.className("btn-next")).get(areaNo).click();// 點選"立即訂購"
 
-					getContract();// 若有買賣契約()
+					getContract();// 若有買賣契約(日團) 或 focas粉絲答題(韓團)
 
 				}
 			} catch (Exception e) {
@@ -128,7 +126,8 @@ public class tixcraft {
 					// 方法1：自動-> choiceArea
 					choiceArea(driver, element, areas, jse, areaUrl);
 					// 方法2：手動-> choiceAreaWithoutTicket
-					//choiceAreaWithoutTicket(driver, element, areas, jse, areaUrl);
+					// choiceAreaWithoutTicket(driver, element, areas, jse,
+					// areaUrl);
 				}
 
 			} catch (Exception e) {
@@ -215,38 +214,33 @@ public class tixcraft {
 
 	}
 
-	// ******************買賣契約填寫********************
+	// ******************買賣契約填寫 或 focas粉絲答題********************
 	public static void getContract() {
-		if (driver.getCurrentUrl().contains("verify") && "買賣契約書：".equals(
-				driver.findElement(By.xpath("/html/body/div/div[2]/div/div/div[2]/div/form/div[1]/h4")).getText())) {
-			try {
-				driver.findElement(By.id("checkCode"))
-						.sendKeys(driver
-								.findElement(By.xpath("/html/body/div/div[2]/div/div/div[2]/div/form/div[1]/div/font"))
-								.getText());
-				driver.findElement(By.id("submitButton")).click();
-				// 若驗證碼打錯或該區域沒票跳出alert訊息
-				Alert alert = driver.switchTo().alert();
-				alert.accept();
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
-			}
-		}
-	}
-	
-	// ******************focas粉絲答題輸入匡********************
-	public static void getFansQuestion(WebElement element,JavascriptExecutor jse) {
-		if (driver.getCurrentUrl().contains("verify") && "買賣契約書：".equals(
-				driver.findElement(By.xpath("/html/body/div/div[2]/div/div/div[2]/div/form/div[1]/h4")).getText())) {
-			try {
-				// focas在粉絲答題匡
-				jse.executeScript("$('#checkCode').focus()", element);
-				while (driver.getCurrentUrl().contains("verify")){
-					
+		try {
+			if (driver.getCurrentUrl().contains("verify")) {
+				if ("買賣契約書：".equals(driver
+						.findElement(By.xpath("/html/body/div/div[2]/div/div/div[2]/div/form/div[1]/h4")).getText())) {
+
+					driver.findElement(By.id("checkCode"))
+							.sendKeys(driver
+									.findElement(
+											By.xpath("/html/body/div/div[2]/div/div/div[2]/div/form/div[1]/div/font"))
+									.getText());
+					driver.findElement(By.id("submitButton")).click();
+					// 若驗證碼打錯或該區域沒票跳出alert訊息
+					Alert alert = driver.switchTo().alert();
+					alert.accept();
+
+				} else {
+					// focas在粉絲答題匡
+					jse.executeScript("$('#checkCode').focus()", element);
+					while (driver.getCurrentUrl().contains("verify")) {
+						
+					}
 				}
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
 			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
 		}
 	}
 
