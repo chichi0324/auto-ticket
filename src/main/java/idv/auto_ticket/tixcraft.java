@@ -21,8 +21,11 @@ public class tixcraft {
 	private static String areaUrl;
 	private static int areaNo;
 	static {
-//		System.setProperty("webdriver.chrome.driver", "driver/chromedriver_win.exe");// 導入chromedriver for window
-		System.setProperty("webdriver.chrome.driver", "driver/chromedriver_mac");// 導入chromedriver for mac
+		// System.setProperty("webdriver.chrome.driver",
+		// "driver/chromedriver_win.exe");// 導入chromedriver for window
+		System.setProperty("webdriver.chrome.driver", "driver/chromedriver_mac");// 導入chromedriver
+																					// for
+																					// mac
 
 		// ChromeOptions chromeOptions = new ChromeOptions();
 		// chromeOptions.addArguments("--start-maximized");//windows
@@ -32,39 +35,48 @@ public class tixcraft {
 
 		areas = new ArrayList<WebElement>();
 		jse = (JavascriptExecutor) driver;
-		activePageUrl = "https://tixcraft.com/activity/detail/19_MAROON5";
-		areaNo=0;
+		activePageUrl = "https://tixcraft.com/activity/detail/19_Aimer";
+		areaNo = 0;
 		driver.get("https://tixcraft.com");// 拓元網站
 
 	}
 
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		activePageUrl=activePageUrl.replace("detail", "game");
+		activePageUrl = activePageUrl.replace("detail", "game");
 		driver.get("https://tixcraft.com/login/facebook");// fb登入
 
 		// *****************登入畫面**********************
-		driver.findElement(By.id("email")).sendKeys("???");// 帳號
-		driver.findElement(By.id("pass")).sendKeys("???");// 密碼
+		driver.findElement(By.id("email")).sendKeys("");// 帳號
+		driver.findElement(By.id("pass")).sendKeys("");// 密碼
 		driver.findElement(By.id("loginbutton")).submit();// 點選"登入"
-
+		try {// 已是會員的情況，只輸入密碼
+			driver.findElement(By.xpath("//*[@id='u_0_u']/div/div[2]/table/tbody/tr[1]/td/input"))
+					.sendKeys("");// 密碼
+			driver.findElement(By.xpath("//*[@id='u_0_3']")).submit();
+			;
+		} catch (Exception e) {
+			// System.out.println(e.getMessage());
+		}
 		// ******************活動畫面********************
 		driver.get(activePageUrl);
 
 		// 設定搶票時間
-//		 DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
-//		 long startTicketTime=format.parse("20181224193000").getTime();
-//		 long now;
-//		 do{
-//		 now=System. currentTimeMillis();
-//		 }while(startTicketTime!=now);
+		// DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
+		// long startTicketTime=format.parse("20190217150000").getTime();
+		// long now;
+		// do{
+		// now=System. currentTimeMillis();
+		// }while(startTicketTime!=now);
 
 		// 若時間寫得太慢，頁面未出現立即訂購按鈕，過濾exception，再refresh在點擊一次
 		while (true) {
 			try {
 				driver.get(activePageUrl);// 重新進入演唱會"購票頁面
-				driver.findElements(By.className("btn-next")).get(areaNo).click();//演唱會場次
-				// 點選"立即訂購"
+				driver.findElements(By.className("btn-next")).get(areaNo).click();// 演唱會場次，點選"立即訂購"
+
+//				getContract();// 若有買賣契約()
+
 				// https://tixcraft.com/ticket/area/18_IU/5149
 				// https://tixcraft.com/ticket/verify/18_IU/5149
 				areaUrl = driver.getCurrentUrl().replace("verify", "area");
@@ -76,10 +88,14 @@ public class tixcraft {
 		// ******************選擇座位畫面********************
 
 		do {
+			getFansQuestion(element,jse);
 			// 搶票過程中若被系統踢出來，自動點擊"立即訂購"
 			try {
 				if (activePageUrl.equals(driver.getCurrentUrl())) {
 					driver.findElements(By.className("btn-next")).get(areaNo).click();// 點選"立即訂購"
+
+					getContract();// 若有買賣契約()
+
 				}
 			} catch (Exception e) {
 				// System.out.println(e.getMessage());
@@ -102,18 +118,18 @@ public class tixcraft {
 			}
 
 			// 自動選擇區域
-			try {				
-		
+			try {
+
 				System.out.println("current url:" + driver.getCurrentUrl());
 				System.out.println("areaUrl url:" + areaUrl);
-				
-					if (areaUrl.equals(driver.getCurrentUrl())) {
-						//*********看狀況選擇區域為自動或手動**********
-						//方法1：自動-> choiceArea
-						choiceArea(driver, element, areas, jse, areaUrl);
-						//方法2：手動-> choiceAreaWithoutTicket
-//						choiceAreaWithoutTicket(driver, element, areas, jse, areaUrl);
-					}
+
+				if (areaUrl.equals(driver.getCurrentUrl())) {
+					// *********看狀況選擇區域為自動或手動**********
+					// 方法1：自動-> choiceArea
+					choiceArea(driver, element, areas, jse, areaUrl);
+					// 方法2：手動-> choiceAreaWithoutTicket
+					//choiceAreaWithoutTicket(driver, element, areas, jse, areaUrl);
+				}
 
 			} catch (Exception e) {
 				// System.out.println(e.getMessage());
@@ -175,6 +191,7 @@ public class tixcraft {
 			System.out.println("**********數量：" + areas.size());
 		}
 	}
+
 	// ******************選擇張數畫面********************
 	public static void choiceTicketNo(WebDriver driver, WebElement element, List<WebElement> areas,
 			JavascriptExecutor jse) {
@@ -196,6 +213,41 @@ public class tixcraft {
 		} while (element.getAttribute("value").length() != 4);
 		driver.findElement(By.id("ticketPriceSubmit")).click();
 
+	}
+
+	// ******************買賣契約填寫********************
+	public static void getContract() {
+		if (driver.getCurrentUrl().contains("verify") && "買賣契約書：".equals(
+				driver.findElement(By.xpath("/html/body/div/div[2]/div/div/div[2]/div/form/div[1]/h4")).getText())) {
+			try {
+				driver.findElement(By.id("checkCode"))
+						.sendKeys(driver
+								.findElement(By.xpath("/html/body/div/div[2]/div/div/div[2]/div/form/div[1]/div/font"))
+								.getText());
+				driver.findElement(By.id("submitButton")).click();
+				// 若驗證碼打錯或該區域沒票跳出alert訊息
+				Alert alert = driver.switchTo().alert();
+				alert.accept();
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+		}
+	}
+	
+	// ******************focas粉絲答題輸入匡********************
+	public static void getFansQuestion(WebElement element,JavascriptExecutor jse) {
+		if (driver.getCurrentUrl().contains("verify") && "買賣契約書：".equals(
+				driver.findElement(By.xpath("/html/body/div/div[2]/div/div/div[2]/div/form/div[1]/h4")).getText())) {
+			try {
+				// focas在粉絲答題匡
+				jse.executeScript("$('#checkCode').focus()", element);
+				while (driver.getCurrentUrl().contains("verify")){
+					
+				}
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+		}
 	}
 
 }
